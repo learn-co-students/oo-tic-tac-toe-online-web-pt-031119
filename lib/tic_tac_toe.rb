@@ -1,3 +1,5 @@
+require 'pry'
+
 class TicTacToe
 
   WIN_COMBINATIONS = [
@@ -9,6 +11,11 @@ class TicTacToe
     [0,3,6],
     [1,4,7],
     [2,5,8]
+  ]
+
+  THREE_IN_A_ROW = [
+    ['X', 'X', 'X'],
+    ['O', 'O', 'O']
   ]
 
   def initialize
@@ -31,27 +38,26 @@ class TicTacToe
     @board[i] = token
   end
 
-  def position_taken?
-    @board[input_to_index] == " " ? false : true
+  def position_taken?(index)
+    @board[index] == " " ? false : true
   end
 
-  def valid_move?(position)
-    (0..8).include?(position) && position_taken == false ? true : false
+  def valid_move?(pos)
+    (0..8).include?(pos) && position_taken?(pos) == false ? true : false
   end
 
   def turn
-    index = nil
-    until valid_move?(index)
-      puts "Please pick a position on the board between 1 and 9 to play your token."
-      input = gets.chomp
-      index = input_to_index(input)
-      if valid_move?(index)
-        move(index, token)
-        display_board
-      else
-        puts "Please make a different move."
-      end
+    puts "Please pick a position on the board between 1 and 9 to play your token."
+    input = gets.chomp
+    index = input_to_index(input)
+    if valid_move?(index)
+      move(index, current_player)
+      display_board
+    else
+      puts "Please make a different move."
+      self.turn
     end
+
   end
 
   def turn_count
@@ -59,24 +65,43 @@ class TicTacToe
   end
 
   def current_player
+    current_turn = turn_count + 1
+    current_turn % 2 != 0 ? 'X' : 'O'
   end
 
   def won?
+    WIN_COMBINATIONS.find do |win_combo|
+      THREE_IN_A_ROW.include?(win_combo.map {|i| @board[i]})
+    end
   end
 
   def full?
+    !@board.any? {|pos| pos == " "}
   end
 
   def draw?
+    full? && !won? ? true : false
   end
 
   def over?
+    won? || draw?
   end
 
   def winner
+    @board[won?.first] if won?
   end
 
   def play
+    until over?
+      turn
+    end
+
+    if won?
+      puts "Congratulations #{winner}!"
+    elsif draw?
+      puts "Cat's Game!"
+    end
+  end
 
 
 end
